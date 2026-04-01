@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhysicsBoard Pro — Live Teaching Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+<style>
+:root {
+  --bg: #060b14;
+  --surface: #0d1520;
+  --surface2: #131f30;
+  --surface3: #1a2a40;
+  --border: #1e3050;
+  --accent: #00e5ff;
+  --accent2: #ff6b35;
+  --accent3: #39ff14;
+  --gold: #ffd700;
+  --text: #dce8f5;
+  --muted: #4a6080;
+  --red: #ff3b5c;
+  --board: #08111e;
+  --glow: rgba(0,229,255,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── INVITE SCREEN ── */
+#inviteScreen {
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background-image: radial-gradient(ellipse at 30% 20%, rgba(0,229,255,0.08) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 80%, rgba(255,107,53,0.06) 0%, transparent 50%);
+}
+.invite-card {
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:48px 56px;max-width:560px;width:90%;text-align:center;
+  box-shadow: 0 0 80px rgba(0,229,255,0.1), 0 40px 80px rgba(0,0,0,0.5);
+  animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(0.95)}to{opacity:1;transform:none}}
+.invite-logo{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-bottom:6px}
+.invite-logo span{color:var(--accent2)}
+.invite-sub{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px}
+
+.role-btns{display:flex;gap:16px;margin-bottom:32px}
+.role-btn{flex:1;padding:20px 16px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);
+  cursor:pointer;transition:all 0.2s;font-family:'Exo 2',sans-serif}
+.role-btn:hover{border-color:var(--accent);background:var(--glow)}
+.role-btn.selected{border-color:var(--accent);background:rgba(0,229,255,0.12);box-shadow:0 0 24px rgba(0,229,255,0.2)}
+.role-icon{font-size:32px;margin-bottom:8px}
+.role-title{font-size:15px;font-weight:700;color:var(--text)}
+.role-desc{font-size:11px;color:var(--muted);margin-top:4px}
+
+.input-group{margin-bottom:16px;text-align:left}
+.input-label{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block}
+.invite-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:12px 16px;border-radius:10px;font-family:'Exo 2',sans-serif;font-size:14px}
+.invite-input:focus{outline:none;border-color:var(--accent)}
+
+.start-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),#0099cc);
+  border:none;border-radius:12px;color:#000;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;
+  letter-spacing:2px;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,229,255,0.4)}
+
+.session-code-display{background:var(--surface2);border:1px dashed var(--accent);border-radius:10px;
+  padding:16px;margin-top:20px;display:none}
+.session-code-display.show{display:block}
+.code-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.code-value{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);letter-spacing:6px;margin:6px 0}
+.copy-link{font-size:12px;color:var(--accent2);cursor:pointer;text-decoration:underline}
+.share-methods{display:flex;gap:10px;margin-top:12px;justify-content:center}
+.share-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface3);
+  color:var(--text);font-size:12px;cursor:pointer;transition:all 0.15s}
+.share-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── MAIN APP ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+  box-shadow:0 1px 0 rgba(0,229,255,0.1)}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:18px;color:var(--accent);letter-spacing:1px}
+.logo span{color:var(--accent2)}
+.hdr-center{display:flex;align-items:center;gap:14px}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(57,255,20,0.1);
+  border:1px solid var(--accent3);color:var(--accent3);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.live-dot{width:6px;height:6px;background:var(--accent3);border-radius:50%;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.session-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+
+.btn{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;
+  border:none;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;letter-spacing:0.5px}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00c8e0;box-shadow:0 4px 20px rgba(0,229,255,0.35)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(255,59,92,0.15);color:var(--red);border:1px solid var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-orange{background:rgba(255,107,53,0.15);color:var(--accent2);border:1px solid var(--accent2)}
+.btn-orange:hover{background:var(--accent2);color:#fff}
+
+.main{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden}
+
+/* ── BOARD COLUMN ── */
+.board-col{display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+.toolbar{display:flex;align-items:center;gap:5px;padding:6px 14px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tg{display:flex;align-items:center;gap:4px;padding-right:10px;border-right:1px solid var(--border);margin-right:4px}
+.tg:last-child{border-right:none}
+.tool-btn{width:32px;height:32px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--muted);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:15px;transition:all 0.15s}
+.tool-btn:hover,.tool-btn.active{background:rgba(0,229,255,0.12);border-color:var(--accent);color:var(--accent)}
+.cb{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.15s}
+.cb:hover{transform:scale(1.25)}
+.cb.active{border-color:#fff;box-shadow:0 0 8px currentColor}
+.stroke-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:3px 7px;border-radius:6px;font-size:11px;cursor:pointer}
+
+.formula-strip{display:flex;gap:5px;padding:5px 14px;background:var(--surface);
+  border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+.fchip{font-family:'JetBrains Mono',monospace;font-size:10px;white-space:nowrap;padding:3px 9px;
+  border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s}
+.fchip:hover{border-color:var(--gold);color:var(--gold)}
+
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background:var(--board);
+  background-image:linear-gradient(rgba(0,229,255,0.015) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,229,255,0.015) 1px,transparent 1px);
+  background-size:40px 40px}
+#wb{position:absolute;top:0;left:0;cursor:crosshair;touch-action:none}
+.math-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.mblk{position:absolute;pointer-events:all;cursor:move;padding:6px 12px;border-radius:8px;
+  background:rgba(6,11,20,0.85);border:1px solid rgba(0,229,255,0.35);color:var(--text);
+  font-size:17px;animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);backdrop-filter:blur(4px);
+  user-select:none}
+@keyframes popIn{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}
+
+/* SPEECH TEXT STREAM */
+.speech-stream{position:absolute;bottom:12px;left:12px;right:12px;pointer-events:none;z-index:10}
+.speech-word{display:inline-block;margin:2px;padding:4px 10px;border-radius:20px;
+  background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.4);color:var(--accent);
+  font-size:16px;font-weight:600;animation:wordPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  font-family:'Exo 2',sans-serif;backdrop-filter:blur(8px)}
+@keyframes wordPop{from{opacity:0;transform:translateY(12px) scale(0.8)}to{opacity:1;transform:none}}
+
+/* ── AVATAR ── */
+.avatar-dock{position:absolute;bottom:80px;right:16px;z-index:20;cursor:grab}
+.avatar-dock:active{cursor:grabbing}
+.avatar-wrap{position:relative;width:90px;height:110px}
+.avatar-bg{position:absolute;inset:0;border-radius:50% 50% 40% 40%;
+  background:linear-gradient(180deg,var(--surface2) 0%,var(--surface3) 100%);
+  border:2px solid var(--accent);box-shadow:0 0 20px rgba(0,229,255,0.3),0 8px 30px rgba(0,0,0,0.5)}
+
+/* HEAD */
+.av-head{position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:50px;height:54px;background:linear-gradient(180deg,#f0c490 0%,#e8a870 100%);
+  border-radius:50% 50% 45% 45%;overflow:visible}
+/* Hair */
+.av-hair{position:absolute;top:-6px;left:-3px;width:56px;height:28px;
+  background:linear-gradient(180deg,#3a2010 0%,#5a3820 100%);
+  border-radius:50% 50% 0 0;z-index:2}
+/* Eyes */
+.av-eyes{position:absolute;top:16px;left:0;width:100%;display:flex;justify-content:space-around;padding:0 6px}
+.av-eye{width:10px;height:10px;background:#222;border-radius:50%;position:relative}
+.av-eye::after{content:'';position:absolute;top:2px;left:2px;width:4px;height:4px;background:#fff;border-radius:50%}
+.av-eye.blink{animation:blink 0.15s ease}
+@keyframes blink{0%,100%{transform:scaleY(1)}50%{transform:scaleY(0.05)}}
+/* Brows */
+.av-brows{position:absolute;top:11px;left:0;width:100%;display:flex;justify-content:space-around;padding:0 5px}
+.av-brow{width:12px;height:3px;background:#3a2010;border-radius:2px;transition:transform 0.2s}
+/* Mouth */
+.av-mouth{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  width:20px;height:8px;border-radius:0 0 10px 10px;background:#d4744a;
+  transition:all 0.1s;overflow:hidden}
+.av-mouth-inner{width:100%;height:100%;background:#8b2020;transform:scaleY(0);transform-origin:top;transition:transform 0.08s}
+.av-teeth{position:absolute;top:0;left:2px;right:2px;height:4px;background:#f5f5f5;border-radius:0 0 4px 4px;opacity:0;transition:opacity 0.1s}
+/* BODY */
+.av-body{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:60px;height:45px;background:linear-gradient(180deg,#1a4a8a 0%,#0d2d5e 100%);
+  border-radius:30% 30% 10% 10%;border:2px solid var(--accent)}
+/* Collar */
+.av-collar{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:16px;height:10px;background:#f0c490;border-radius:0 0 8px 8px}
+/* Arms */
+.av-arm-l,.av-arm-r{position:absolute;bottom:6px;width:14px;height:34px;
+  background:linear-gradient(180deg,#1a4a8a,#0d2d5e);border-radius:7px;border:1px solid rgba(0,229,255,0.3);
+  transform-origin:top center}
+.av-arm-l{left:-10px;transform:rotate(-10deg)}
+.av-arm-r{right:-10px;transform:rotate(10deg)}
+
+/* Speaking animations */
+.speaking .av-arm-l{animation:armWave 0.6s ease-in-out infinite alternate}
+.speaking .av-arm-r{animation:armWave2 0.5s ease-in-out infinite alternate}
+@keyframes armWave{from{transform:rotate(-10deg)}to{transform:rotate(-30deg)}}
+@keyframes armWave2{from{transform:rotate(10deg)}to{transform:rotate(25deg)}}
+.speaking .av-brow{animation:browRaise 0.4s ease-in-out infinite alternate}
+@keyframes browRaise{from{transform:none}to{transform:translateY(-2px)}}
+
+/* Sound waves around avatar */
+.av-waves{position:absolute;left:-16px;right:-16px;top:-16px;bottom:-16px;pointer-events:none}
+.wave-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);opacity:0;
+  animation:none}
+.speaking .wave-ring:nth-child(1){animation:ringOut 1.2s ease-out infinite}
+.speaking .wave-ring:nth-child(2){animation:ringOut 1.2s ease-out 0.4s infinite}
+.speaking .wave-ring:nth-child(3){animation:ringOut 1.2s ease-out 0.8s infinite}
+@keyframes ringOut{0%{transform:scale(0.8);opacity:0.6}100%{transform:scale(1.5);opacity:0}}
+
+/* ── VOICE BAR ── */
+.voice-bar{padding:8px 14px;background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0}
+.mic-btn{width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);
+  background:rgba(0,229,255,0.1);color:var(--accent);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.mic-btn.on{background:rgba(255,59,92,0.2);border-color:var(--red);color:var(--red);
+  animation:micGlow 1s infinite}
+@keyframes micGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,59,92,0.5)}50%{box-shadow:0 0 0 10px rgba(255,59,92,0)}}
+.transcript-box{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;font-size:13px;color:var(--muted);min-height:34px;display:flex;align-items:center;
+  font-style:italic;transition:border-color 0.2s}
+.transcript-box.active{color:var(--text);font-style:normal;border-color:var(--accent)}
+.voice-mode-btns{display:flex;gap:6px}
+.mode-btn{font-size:11px;padding:5px 11px;border-radius:6px;cursor:pointer;transition:all 0.15s;
+  font-family:'Exo 2',sans-serif;font-weight:600;border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted)}
+.mode-btn.active{background:rgba(0,229,255,0.15);border-color:var(--accent);color:var(--accent)}
+
+/* Math input */
+.math-row{display:flex;gap:8px;align-items:center;padding:7px 14px;
+  background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.math-in{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.math-in:focus{outline:none;border-color:var(--accent)}
+.math-in::placeholder{color:var(--muted)}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.stabs{display:flex;border-bottom:1px solid var(--border)}
+.stab{flex:1;padding:11px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.5px;
+  font-family:'Orbitron',monospace;position:relative}
+.stab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.stcontent{display:none;flex:1;flex-direction:column;overflow:hidden}
+.stcontent.active{display:flex}
+
+/* Students */
+.students-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
+.sc{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--surface2);
+  border-radius:8px;border:1px solid var(--border);transition:border-color 0.2s}
+.sc.raised{border-color:var(--gold)}
+.sav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;flex-shrink:0}
+.sinfo{flex:1;min-width:0}
+.sname{font-size:13px;font-weight:600}
+.sstatus{font-size:10px;color:var(--muted)}
+
+/* Q&A */
+.qa-box{padding:10px;border-bottom:1px solid var(--border)}
+.qinput{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:9px 11px;border-radius:8px;font-size:12px;font-family:'Exo 2',sans-serif;
+  resize:none;min-height:65px}
+.qinput:focus{outline:none;border-color:var(--accent2)}
+.qa-acts{display:flex;gap:7px;margin-top:7px}
+.responses{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
+.rcard{padding:9px 11px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent2);
+  animation:slideIn 0.3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.rname{font-size:10px;font-weight:700;margin-bottom:3px}
+.rtext{font-size:12px}
+
+/* Poll */
+.poll-box{margin:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--accent2)}
+.poll-q{font-size:12px;font-weight:700;margin-bottom:10px;color:var(--accent)}
+.popt{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.pbar-wrap{flex:1;height:18px;background:var(--border);border-radius:10px;overflow:hidden}
+.pbar{height:100%;border-radius:10px;transition:width 0.5s ease;display:flex;align-items:center;padding-left:6px;
+  font-size:10px;color:#fff;font-weight:700}
+.plabel{font-size:11px;width:18px;font-weight:700;color:var(--gold)}
+
+/* Chat */
+.chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
+.cmsg{display:flex;gap:7px;animation:slideIn 0.2s ease}
+.cav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+.cbubble{background:var(--surface2);padding:6px 10px;border-radius:0 10px 10px 10px;
+  font-size:12px;max-width:200px}
+.cfrom{font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:700}
+.chat-input-row{display:flex;gap:7px;padding:9px 10px;border-top:1px solid var(--border)}
+.cinput{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:6px 10px;border-radius:8px;font-size:12px;font-family:'Exo 2',sans-serif}
+.cinput:focus{outline:none;border-color:var(--accent)}
+
+/* Invite overlay */
+.invite-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.9);z-index:500;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);display:none}
+.invite-overlay.show{display:flex}
+.inv-modal{background:var(--surface);border:1px solid var(--accent);border-radius:16px;
+  padding:32px;max-width:480px;width:90%;box-shadow:0 0 60px rgba(0,229,255,0.2)}
+.inv-title{font-family:'Orbitron',monospace;font-size:18px;color:var(--accent);margin-bottom:20px;text-align:center}
+.inv-row{display:flex;gap:10px;margin-bottom:14px}
+.inv-code-big{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;
+  color:var(--accent);letter-spacing:8px;text-align:center;
+  background:var(--surface2);border:1px dashed var(--accent);border-radius:12px;padding:16px;
+  margin:12px 0}
+.inv-link{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  background:var(--surface2);padding:10px;border-radius:8px;word-break:break-all;margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.share-tile{padding:12px;border:1px solid var(--border);border-radius:10px;text-align:center;
+  cursor:pointer;transition:all 0.2s;font-size:13px}
+.share-tile:hover{border-color:var(--accent);background:var(--glow)}
+.share-tile-icon{font-size:22px;margin-bottom:4px}
+
+/* Status bar */
+.status-bar{display:flex;align-items:center;gap:14px;padding:0 16px;height:26px;
+  background:var(--surface);border-top:1px solid var(--border);font-size:10px;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.si{display:flex;align-items:center;gap:4px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--accent3)}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--surface2);border:1px solid var(--accent);color:var(--text);padding:9px 20px;
+  border-radius:8px;font-size:12px;transition:transform 0.3s ease;z-index:1000;pointer-events:none;
+  font-family:'Exo 2',sans-serif;box-shadow:0 8px 32px rgba(0,229,255,0.2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Notif dot */
+.ndot{position:absolute;top:5px;right:8px;width:7px;height:7px;background:var(--red);
+  border-radius:50%;display:none}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  INVITE / LOGIN SCREEN                         -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="inviteScreen">
+  <div class="invite-card">
+    <div class="invite-logo">Physics<span>Board</span> <span style="color:var(--gold);font-size:20px">PRO</span></div>
+    <div class="invite-sub">LIVE INTERACTIVE PHYSICS CLASSROOM</div>
+
+    <div class="role-btns">
+      <div class="role-btn selected" id="roleTeacher" onclick="selectRole('teacher')">
+        <div class="role-icon">👨‍🏫</div>
+        <div class="role-title">Teacher</div>
+        <div class="role-desc">Host a live class</div>
+      </div>
+      <div class="role-btn" id="roleStudent" onclick="selectRole('student')">
+        <div class="role-icon">👩‍🎓</div>
+        <div class="role-title">Student</div>
+        <div class="role-desc">Join a class</div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Your Name</label>
+      <input class="invite-input" id="userName" placeholder="Enter your name" value="Dr. Physics">
+    </div>
+
+    <div class="input-group" id="sessionCodeGroup" style="display:none">
+      <label class="input-label">Session Code</label>
+      <input class="invite-input" id="joinCode" placeholder="Enter 6-digit code e.g. PHY-482">
+    </div>
+
+    <button class="start-btn" id="startBtn" onclick="enterApp()">⚡ START MY CLASS</button>
+
+    <div class="session-code-display" id="generatedCode">
+      <div class="code-label">Share this code with your students</div>
+      <div class="code-value" id="codeValue">—</div>
+      <div class="share-methods">
+        <div class="share-btn" onclick="copyCode()">📋 Copy Code</div>
+        <div class="share-btn" onclick="copyLink()">🔗 Copy Link</div>
+        <div class="share-btn" onclick="shareWhatsApp()">💬 WhatsApp</div>
+        <div class="share-btn" onclick="shareEmail()">✉ Email</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  MAIN APP                                      -->
+<!-- ══════════════════════════════════════════════ -->
+<header>
+  <div class="logo">Physics<span>Board</span></div>
+  <div class="hdr-center">
+    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+    <div class="session-tag" id="sessionTag">PHY-000</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace" id="hdrclock"></div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-orange" onclick="showInviteModal()">📨 Invite Students</button>
+    <button class="btn btn-ghost" onclick="clearBoard()">🗑 Clear</button>
+    <button class="btn btn-ghost" onclick="saveBoard()">💾 Save</button>
+    <button class="btn btn-danger" onclick="endClass()">⏹ End</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- BOARD -->
+  <div class="board-col">
+    <div class="toolbar">
+      <div class="tg">
+        <button class="tool-btn active" id="penTool" onclick="setTool('pen')" title="Pen">✏️</button>
+        <button class="tool-btn" id="eraserTool" onclick="setTool('eraser')" title="Eraser">🧹</button>
+        <button class="tool-btn" id="lineTool" onclick="setTool('line')" title="Line">╱</button>
+        <button class="tool-btn" id="arrowTool" onclick="setTool('arrow')" title="Arrow">→</button>
+        <button class="tool-btn" id="rectTool" onclick="setTool('rect')" title="Rectangle">▭</button>
+        <button class="tool-btn" id="circleTool" onclick="setTool('circle')" title="Circle">○</button>
+      </div>
+      <div class="tg">
+        <div class="cb active" style="background:#00e5ff" onclick="setColor('#00e5ff')" data-c="#00e5ff"></div>
+        <div class="cb" style="background:#fff" onclick="setColor('#ffffff')" data-c="#ffffff"></div>
+        <div class="cb" style="background:#ffd700" onclick="setColor('#ffd700')" data-c="#ffd700"></div>
+        <div class="cb" style="background:#39ff14" onclick="setColor('#39ff14')" data-c="#39ff14"></div>
+        <div class="cb" style="background:#ff3b5c" onclick="setColor('#ff3b5c')" data-c="#ff3b5c"></div>
+        <div class="cb" style="background:#ff6b35" onclick="setColor('#ff6b35')" data-c="#ff6b35"></div>
+      </div>
+      <div class="tg">
+        <select class="stroke-sel" onchange="setStroke(this.value)">
+          <option value="2">Thin</option>
+          <option value="4" selected>Med</option>
+          <option value="8">Thick</option>
+          <option value="16">Bold</option>
+        </select>
+      </div>
+      <div class="tg">
+        <button class="tool-btn" onclick="undoLast()" title="Undo">↩</button>
+        <button class="tool-btn" onclick="redoLast()" title="Redo">↪</button>
+      </div>
+      <div class="tg">
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="addImgToBoard()">🖼 Image</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="addTextPrompt()">Aa Text</button>
+      </div>
+    </div>
+
+    <div class="formula-strip">
+      <span class="fchip" onclick="placeF('F = ma')">F=ma</span>
+      <span class="fchip" onclick="placeF('v = u + at')">v=u+at</span>
+      <span class="fchip" onclick="placeF('s = ut + \\frac{1}{2}at^2')">s=ut+½at²</span>
+      <span class="fchip" onclick="placeF('E = mc^2')">E=mc²</span>
+      <span class="fchip" onclick="placeF('KE = \\frac{1}{2}mv^2')">KE=½mv²</span>
+      <span class="fchip" onclick="placeF('PE = mgh')">PE=mgh</span>
+      <span class="fchip" onclick="placeF('V = IR')">V=IR</span>
+      <span class="fchip" onclick="placeF('P = \\frac{W}{t}')">P=W/t</span>
+      <span class="fchip" onclick="placeF('F = \\frac{Gm_1m_2}{r^2}')">Gravity</span>
+      <span class="fchip" onclick="placeF('\\lambda = \\frac{h}{mv}')">de Broglie</span>
+      <span class="fchip" onclick="placeF('p = mv')">p=mv</span>
+      <span class="fchip" onclick="placeF('W = Fd\\cos\\theta')">W=Fdcosθ</span>
+    </div>
+
+    <div class="canvas-wrap" id="cw">
+      <canvas id="wb"></canvas>
+      <div class="math-layer" id="ml"></div>
+      <div class="speech-stream" id="speechStream"></div>
+
+      <!-- ANIMATED AVATAR -->
+      <div class="avatar-dock" id="avatarDock">
+        <div class="avatar-wrap" id="avatarWrap">
+          <div class="av-waves">
+            <div class="wave-ring"></div>
+            <div class="wave-ring"></div>
+            <div class="wave-ring"></div>
+          </div>
+          <div class="avatar-bg"></div>
+          <!-- Head -->
+          <div class="av-head" id="avHead" style="position:absolute;top:6px;left:50%;transform:translateX(-50%)">
+            <div class="av-hair"></div>
+            <div class="av-brows" id="avBrows">
+              <div class="av-brow"></div>
+              <div class="av-brow"></div>
+            </div>
+            <div class="av-eyes" id="avEyes">
+              <div class="av-eye" id="eyeL"></div>
+              <div class="av-eye" id="eyeR"></div>
+            </div>
+            <div class="av-mouth" id="avMouth">
+              <div class="av-teeth" id="avTeeth"></div>
+              <div class="av-mouth-inner" id="avMouthInner"></div>
+            </div>
+          </div>
+          <!-- Body -->
+          <div class="av-body" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%)">
+            <div class="av-arm-l"></div>
+            <div class="av-arm-r"></div>
+            <div class="av-collar"></div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:9px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:4px;letter-spacing:1px" id="avatarLabel">TEACHER</div>
+      </div>
+    </div>
+
+    <!-- Math input -->
+    <div class="math-row">
+      <span style="color:var(--gold);font-size:16px">∑</span>
+      <input class="math-in" id="mathIn" placeholder="LaTeX: type e.g.  \frac{1}{2}mv^2  then Enter to place on board">
+      <button class="btn btn-primary" onclick="placeMath()">Place ↵</button>
+    </div>
+
+    <!-- Voice bar -->
+    <div class="voice-bar">
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+      <div class="transcript-box" id="transcriptBox">Click 🎤 and speak — words appear on the board live, physics formulas auto-placed!</div>
+      <div class="voice-mode-btns">
+        <button class="mode-btn active" id="modeWrite" onclick="setVoiceMode('write')" title="Write spoken words on board">✍ Write</button>
+        <button class="mode-btn" id="modeFormula" onclick="setVoiceMode('formula')" title="Auto-detect formulas">∑ Formula</button>
+        <button class="mode-btn" id="modeBoth" onclick="setVoiceMode('both')" title="Both modes">⚡ Both</button>
+      </div>
+      <button class="btn btn-ghost" style="font-size:11px" onclick="clearSpeech()">✕</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="stabs">
+      <div class="stab active" onclick="switchTab('students')">STUDENTS</div>
+      <div class="stab" onclick="switchTab('qa')" style="position:relative">Q&A<div class="ndot" id="qaDot"></div></div>
+      <div class="stab" onclick="switchTab('chat')" style="position:relative">CHAT<div class="ndot" id="chatDot"></div></div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="stcontent active" id="tabStudents">
+      <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:var(--muted)" id="onlineCount">0 online</span>
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 9px" onclick="simRaise()">Sim Raise ✋</button>
+      </div>
+      <div class="students-list" id="studentsList"></div>
+    </div>
+
+    <!-- Q&A -->
+    <div class="stcontent" id="tabQA">
+      <div class="qa-box">
+        <textarea class="qinput" id="qText" placeholder="Ask your class a question…"></textarea>
+        <div class="qa-acts">
+          <button class="btn btn-primary" style="flex:1;font-size:11px" onclick="askClass()">📢 Ask</button>
+          <button class="btn btn-orange" style="flex:1;font-size:11px" onclick="launchPoll()">📊 Poll</button>
+        </div>
+      </div>
+      <div id="pollZone"></div>
+      <div style="padding:6px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border)" id="rCount">Responses appear below</div>
+      <div class="responses" id="responsesEl"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="stcontent" id="tabChat">
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-input-row">
+        <input class="cinput" id="chatIn" placeholder="Message students…" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-primary" style="padding:6px 11px" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="si"><div class="sdot"></div> Online</div>
+  <div class="si" id="micStat">🎤 Mic off</div>
+  <div class="si" id="voiceModeStat">Mode: Write</div>
+  <div class="si" id="toolStat">✏ Pen</div>
+  <div style="flex:1"></div>
+  <div class="si">PhysicsBoard Pro ⚡ — Open in Chrome for full voice support</div>
+</div>
+
+<!-- INVITE MODAL -->
+<div class="invite-overlay" id="inviteModal">
+  <div class="inv-modal">
+    <div class="inv-title">📨 Invite Students</div>
+    <div class="code-label" style="text-align:center;color:var(--muted);font-size:11px;letter-spacing:1px">SESSION CODE</div>
+    <div class="inv-code-big" id="modalCode">PHY-000</div>
+    <div class="code-label" style="color:var(--muted);font-size:11px;letter-spacing:1px;margin-bottom:6px">SHAREABLE LINK</div>
+    <div class="inv-link" id="modalLink"></div>
+    <div class="share-grid">
+      <div class="share-tile" onclick="copyLink()"><div class="share-tile-icon">🔗</div>Copy Link</div>
+      <div class="share-tile" onclick="copyCode()"><div class="share-tile-icon">📋</div>Copy Code</div>
+      <div class="share-tile" onclick="shareWhatsApp()"><div class="share-tile-icon">💬</div>WhatsApp</div>
+      <div class="share-tile" onclick="shareEmail()"><div class="share-tile-icon">✉️</div>Email</div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center" onclick="document.getElementById('inviteModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SESSION & ENTRY
+// ═══════════════════════════════════════════════════════
+let sessionCode = 'PHY-' + Math.floor(100 + Math.random() * 900);
+let userRole = 'teacher';
+let userName = 'Dr. Physics';
+
+function selectRole(r) {
+  userRole = r;
+  document.getElementById('roleTeacher').classList.toggle('selected', r === 'teacher');
+  document.getElementById('roleStudent').classList.toggle('selected', r === 'student');
+  document.getElementById('sessionCodeGroup').style.display = r === 'student' ? 'block' : 'none';
+  document.getElementById('startBtn').textContent = r === 'teacher' ? '⚡ START MY CLASS' : '🚀 JOIN CLASS';
+  if (r === 'teacher') showGeneratedCode();
+}
+
+function showGeneratedCode() {
+  document.getElementById('codeValue').textContent = sessionCode;
+  document.getElementById('generatedCode').classList.add('show');
+}
+showGeneratedCode();
+
+function enterApp() {
+  userName = document.getElementById('userName').value.trim() || 'Teacher';
+  if (userRole === 'student') {
+    const code = document.getElementById('joinCode').value.trim();
+    if (!code) { toast('Enter session code!'); return; }
+    sessionCode = code.toUpperCase();
+  }
+  document.getElementById('inviteScreen').style.display = 'none';
+  document.getElementById('sessionTag').textContent = sessionCode;
+  document.getElementById('modalCode').textContent = sessionCode;
+  document.getElementById('modalLink').textContent = window.location.href.split('?')[0] + '?join=' + sessionCode;
+  document.getElementById('avatarLabel').textContent = userName.toUpperCase().substring(0,10);
+  initApp();
+  toast('Welcome, ' + userName + '! Class is live 🎉');
+}
+
+// Auto-fill from URL param
+window.addEventListener('load', () => {
+  const p = new URLSearchParams(location.search);
+  if (p.get('join')) {
+    selectRole('student');
+    document.getElementById('joinCode').value = p.get('join');
+    document.getElementById('userName').value = '';
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════
+function tick() {
+  document.getElementById('hdrclock').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tick, 1000); tick();
+
+// ═══════════════════════════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('wb');
+const ctx = canvas.getContext('2d');
+const cw = document.getElementById('cw');
+
+function resizeCanvas() {
+  const snap = ctx.getImageData(0,0,canvas.width,canvas.height);
+  canvas.width = cw.clientWidth;
+  canvas.height = cw.clientHeight;
+  ctx.putImageData(snap,0,0);
+}
+
+let tool='pen', color='#00e5ff', stroke=4;
+let drawing=false, sx,sy, history=[], redoStack=[], snap2;
+
+function resizeAndInit() { resizeCanvas(); }
+window.addEventListener('resize', resizeCanvas);
+
+function saveHist() { history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); redoStack=[]; }
+function undoLast() { if(!history.length) return; redoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height)); ctx.putImageData(history.pop(),0,0); toast('Undone'); }
+function redoLast() { if(!redoStack.length) return; history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); ctx.putImageData(redoStack.pop(),0,0); toast('Redone'); }
+
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  const el = document.getElementById(t+'Tool');
+  if(el) el.classList.add('active');
+  canvas.style.cursor = t==='eraser'?'cell':'crosshair';
+  document.getElementById('toolStat').textContent = '✏ ' + t.charAt(0).toUpperCase()+t.slice(1);
+}
+
+function setColor(c) {
+  color=c;
+  document.querySelectorAll('.cb').forEach(b=>b.classList.toggle('active',b.dataset.c===c));
+  if(tool==='eraser') setTool('pen');
+}
+
+function setStroke(v) { stroke=parseInt(v); }
+
+function gp(e) {
+  const r=canvas.getBoundingClientRect(), s=e.touches?e.touches[0]:e;
+  return {x:s.clientX-r.left, y:s.clientY-r.top};
+}
+
+canvas.addEventListener('mousedown', e=>{drawing=true;const p=gp(e);sx=p.x;sy=p.y;saveHist();snap2=ctx.getImageData(0,0,canvas.width,canvas.height);ctx.beginPath();ctx.moveTo(sx,sy)});
+canvas.addEventListener('mousemove', doDraw);
+canvas.addEventListener('mouseup', ()=>{drawing=false;ctx.beginPath()});
+canvas.addEventListener('mouseleave', ()=>{drawing=false;ctx.beginPath()});
+canvas.addEventListener('touchstart', e=>{e.preventDefault();drawing=true;const p=gp(e);sx=p.x;sy=p.y;saveHist();snap2=ctx.getImageData(0,0,canvas.width,canvas.height);ctx.beginPath();ctx.moveTo(sx,sy)},{passive:false});
+canvas.addEventListener('touchmove', e=>{e.preventDefault();doDraw(e)},{passive:false});
+canvas.addEventListener('touchend', ()=>{drawing=false;ctx.beginPath()});
+
+function doDraw(e) {
+  if(!drawing) return;
+  const p=gp(e);
+  ctx.strokeStyle=color; ctx.lineWidth=stroke; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.globalCompositeOperation='source-over';
+  if(tool==='pen'){ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);}
+  else if(tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=stroke*4;ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);}
+  else {
+    ctx.putImageData(snap2,0,0);
+    ctx.strokeStyle=color;ctx.lineWidth=stroke;ctx.lineCap='round';
+    ctx.beginPath();
+    if(tool==='line'){ctx.moveTo(sx,sy);ctx.lineTo(p.x,p.y);ctx.stroke();}
+    else if(tool==='arrow'){ctx.moveTo(sx,sy);ctx.lineTo(p.x,p.y);ctx.stroke();drawHead(sx,sy,p.x,p.y);}
+    else if(tool==='rect'){ctx.strokeRect(sx,sy,p.x-sx,p.y-sy);}
+    else if(tool==='circle'){const rx=Math.abs(p.x-sx)/2,ry=Math.abs(p.y-sy)/2,cx=Math.min(sx,p.x)+rx,cy=Math.min(sy,p.y)+ry;ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke();}
+  }
+}
+
+function drawHead(x1,y1,x2,y2){
+  const a=Math.atan2(y2-y1,x2-x1),h=14;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-h*Math.cos(a-Math.PI/7),y2-h*Math.sin(a-Math.PI/7));
+  ctx.lineTo(x2-h*Math.cos(a+Math.PI/7),y2-h*Math.sin(a+Math.PI/7));
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();
+}
+
+function clearBoard(){saveHist();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('ml').innerHTML='';document.getElementById('speechStream').innerHTML='';toast('Board cleared');}
+function saveBoard(){const l=document.createElement('a');l.download='PhysicsBoard-'+Date.now()+'.png';l.href=canvas.toDataURL();l.click();toast('Saved as PNG!');}
+
+function addImgToBoard(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=ev=>{const im=new Image();im.onload=()=>{saveHist();const mw=Math.min(im.width,canvas.width/2);const sc=mw/im.width;ctx.drawImage(im,40,40,im.width*sc,im.height*sc);toast('Image added!')};im.src=ev.target.result};r.readAsDataURL(f)};inp.click();
+}
+
+function addTextPrompt(){
+  const t=prompt('Enter text to write on board:');
+  if(!t)return;
+  saveHist();
+  ctx.font=`${stroke*4+14}px 'Exo 2', sans-serif`;
+  ctx.fillStyle=color;
+  ctx.fillText(t,60,canvas.height/2);
+}
+
+// ═══════════════════════════════════════════════════════
+// MATH
+// ═══════════════════════════════════════════════════════
+let mx=80,my=70;
+
+function addMathBlock(latex,x,y){
+  const ml=document.getElementById('ml');
+  const d=document.createElement('div');
+  d.className='mblk';
+  d.style.left=(x||mx)+'px';d.style.top=(y||my)+'px';
+  d.innerHTML='\\('+latex+'\\)';
+  let ox,oy,drag=false;
+  d.addEventListener('mousedown',ev=>{drag=true;ox=ev.clientX-d.offsetLeft;oy=ev.clientY-d.offsetTop;ev.stopPropagation()});
+  document.addEventListener('mousemove',ev=>{if(!drag)return;d.style.left=(ev.clientX-ox)+'px';d.style.top=(ev.clientY-oy)+'px'});
+  document.addEventListener('mouseup',()=>drag=false);
+  d.addEventListener('dblclick',()=>d.remove());
+  d.title='Drag to move • Dbl-click to remove';
+  ml.appendChild(d);
+  MathJax.typesetPromise([d]);
+  mx=(mx+230)%(canvas.width-180); my+=75;
+  if(my>canvas.height-80) my=70;
+}
+
+function placeMath(){
+  const v=document.getElementById('mathIn').value.trim();
+  if(!v)return;
+  addMathBlock(v);
+  document.getElementById('mathIn').value='';
+}
+
+function placeF(l){addMathBlock(l);toast('Formula placed on board');}
+
+document.getElementById('mathIn').addEventListener('keydown',e=>{if(e.key==='Enter')placeMath();});
+
+// ═══════════════════════════════════════════════════════
+// AVATAR ANIMATION
+// ═══════════════════════════════════════════════════════
+let speaking = false;
+let blinkTimer, mouthTimer, headTimer;
+let audioLevel = 0;
+
+function setAvatarSpeaking(on) {
+  speaking = on;
+  const wrap = document.getElementById('avatarWrap');
+  if(on) wrap.classList.add('speaking');
+  else { wrap.classList.remove('speaking'); closeMouth(); }
+}
+
+function closeMouth() {
+  const m=document.getElementById('avMouth');
+  const mi=document.getElementById('avMouthInner');
+  const t=document.getElementById('avTeeth');
+  m.style.height='8px';
+  mi.style.transform='scaleY(0)';
+  t.style.opacity='0';
+}
+
+function animateMouth(level) {
+  const m=document.getElementById('avMouth');
+  const mi=document.getElementById('avMouthInner');
+  const t=document.getElementById('avTeeth');
+  const h=8+level*18;
+  m.style.height=h+'px';
+  mi.style.transform=`scaleY(${level*0.6})`;
+  t.style.opacity=level>0.3?'1':'0';
+}
+
+function startBlinking() {
+  function blink(){
+    const eL=document.getElementById('eyeL');
+    const eR=document.getElementById('eyeR');
+    eL.classList.add('blink');eR.classList.add('blink');
+    setTimeout(()=>{eL.classList.remove('blink');eR.classList.remove('blink')},150);
+    blinkTimer=setTimeout(blink,2000+Math.random()*4000);
+  }
+  blink();
+}
+
+let headBob=0;
+function startHeadBob(){
+  headTimer=setInterval(()=>{
+    if(!speaking)return;
+    headBob=(headBob+1)%360;
+    const head=document.getElementById('avHead');
+    const offset=Math.sin(headBob*Math.PI/30)*2;
+    head.style.top=(6+offset)+'px';
+  },50);
+}
+
+// Mouth sync using AudioContext
+let audioCtx, analyser, micStream;
+function startMouthSync(stream){
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  const src=audioCtx.createMediaStreamSource(stream);
+  src.connect(analyser);
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  function frame(){
+    if(!speaking){closeMouth();return;}
+    analyser.getByteFrequencyData(data);
+    const avg=data.slice(0,32).reduce((a,b)=>a+b,0)/32;
+    const level=Math.min(1,avg/120);
+    animateMouth(level);
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// Drag avatar
+const dock=document.getElementById('avatarDock');
+let dax=null,day=null,ddrag=false;
+dock.addEventListener('mousedown',e=>{ddrag=true;dax=e.clientX-dock.offsetLeft;day=e.clientY-dock.offsetTop;e.preventDefault()});
+document.addEventListener('mousemove',e=>{if(!ddrag)return;dock.style.left=(e.clientX-dax)+'px';dock.style.top=(e.clientY-day)+'px';dock.style.right='auto';dock.style.bottom='auto'});
+document.addEventListener('mouseup',()=>ddrag=false);
+
+// ═══════════════════════════════════════════════════════
+// VOICE RECOGNITION
+// ═══════════════════════════════════════════════════════
+let recognition, micOn=false, voiceMode='write';
+let speechWordsX=40, speechWordsY=0;
+let wordTimeout;
+
+const MATH_KEYWORDS = {
+  'force equals': 'F = ma',
+  'f equals ma': 'F = ma',
+  'newton': 'F = ma',
+  'kinetic energy': 'KE = \\frac{1}{2}mv^2',
+  'potential energy': 'PE = mgh',
+  'ohms law': 'V = IR',
+  'voltage': 'V = IR',
+  'velocity': 'v = u + at',
+  'displacement': 's = ut + \\frac{1}{2}at^2',
+  'power equals': 'P = \\frac{W}{t}',
+  'work done': 'W = Fd\\cos\\theta',
+  'einstein': 'E = mc^2',
+  'e equals mc': 'E = mc^2',
+  'energy equals': 'E = mc^2',
+  'gravity': 'F = \\frac{Gm_1m_2}{r^2}',
+  'gravitational': 'F = \\frac{Gm_1m_2}{r^2}',
+  'de broglie': '\\lambda = \\frac{h}{mv}',
+  'wavelength': '\\lambda = \\frac{v}{f}',
+  'momentum': 'p = mv',
+};
+
+function setVoiceMode(m){
+  voiceMode=m;
+  ['write','formula','both'].forEach(n=>document.getElementById('mode'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('active',n===m));
+  document.getElementById('voiceModeStat').textContent='Mode: '+m.charAt(0).toUpperCase()+m.slice(1);
+}
+
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    toast('Use Google Chrome for voice support!');return;
+  }
+  if(micOn){recognition&&recognition.stop();stopMic();return;}
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
+
+  recognition.onstart=()=>{
+    micOn=true;
+    document.getElementById('micBtn').classList.add('on');
+    document.getElementById('micStat').textContent='🔴 Mic ON';
+    document.getElementById('transcriptBox').classList.add('active');
+    setAvatarSpeaking(true);
+    // Request mic for audio analysis
+    navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+      micStream=s;
+      startMouthSync(s);
+    }).catch(()=>{});
+  };
+
+  recognition.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal){final+=t;processVoice(t.toLowerCase().trim());}
+      else interim+=t;
+    }
+    document.getElementById('transcriptBox').textContent=final||interim||'…';
+  };
+
+  recognition.onerror=()=>stopMic();
+  recognition.onend=()=>{if(micOn)recognition.start();};
+  recognition.start();
+}
+
+function stopMic(){
+  micOn=false;
+  document.getElementById('micBtn').classList.remove('on');
+  document.getElementById('micStat').textContent='🎤 Mic off';
+  document.getElementById('transcriptBox').classList.remove('active');
+  setAvatarSpeaking(false);
+  if(micStream)micStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx)audioCtx.close();
+}
+
+function processVoice(text){
+  if(voiceMode==='write'||voiceMode==='both') writeWordsOnBoard(text);
+  if(voiceMode==='formula'||voiceMode==='both') checkMathKeywords(text);
+}
+
+let boardWriteY=80;
+function writeWordsOnBoard(text){
+  const words=text.split(/\s+/).filter(w=>w.length>0);
+  const stream=document.getElementById('speechStream');
+
+  // Clear old words after 8s
+  clearTimeout(wordTimeout);
+  wordTimeout=setTimeout(()=>{stream.innerHTML='';boardWriteY=canvas.height*0.2;},8000);
+
+  // Show floating words on stream overlay
+  stream.innerHTML='';
+  words.forEach((w,i)=>{
+    const span=document.createElement('span');
+    span.className='speech-word';
+    span.textContent=w;
+    span.style.animationDelay=(i*0.08)+'s';
+    stream.appendChild(span);
+  });
+
+  // Also write on canvas
+  saveHist();
+  const fontSz = stroke*3+16;
+  ctx.font=`${fontSz}px 'Exo 2', sans-serif`;
+  ctx.fillStyle=color;
+  ctx.globalCompositeOperation='source-over';
+
+  let lineX=30, lineY=boardWriteY;
+  const maxW=canvas.width-60;
+
+  words.forEach(w=>{
+    const ww=ctx.measureText(w+' ').width;
+    if(lineX+ww>maxW){lineX=30;lineY+=fontSz+8;}
+    if(lineY>canvas.height-40){lineY=canvas.height*0.2;}
+    ctx.fillText(w+' ',lineX,lineY);
+    lineX+=ww;
+  });
+  boardWriteY=lineY+fontSz+10;
+  if(boardWriteY>canvas.height-60) boardWriteY=canvas.height*0.2;
+}
+
+function checkMathKeywords(text){
+  for(const [kw,latex] of Object.entries(MATH_KEYWORDS)){
+    if(text.includes(kw)){addMathBlock(latex);toast('Formula: '+kw);break;}
+  }
+}
+
+function clearSpeech(){
+  document.getElementById('transcriptBox').textContent='Cleared. Click 🎤 to speak again.';
+  document.getElementById('transcriptBox').classList.remove('active');
+  document.getElementById('speechStream').innerHTML='';
+}
+
+// ═══════════════════════════════════════════════════════
+// STUDENTS
+// ═══════════════════════════════════════════════════════
+const STUDENTS=[
+  {name:'Amara O.',color:'#7c3aed',init:'AO',raised:false},
+  {name:'James K.',color:'#00e5ff',init:'JK',raised:false},
+  {name:'Priya M.',color:'#39ff14',init:'PM',raised:false},
+  {name:'Tobias F.',color:'#ffd700',init:'TF',raised:false},
+  {name:'Nadia R.',color:'#ff3b5c',init:'NR',raised:false},
+  {name:'Chen W.',color:'#ff6b35',init:'CW',raised:false},
+];
+
+function renderStudents(){
+  const list=document.getElementById('studentsList');
+  list.innerHTML='';
+  STUDENTS.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='sc'+(s.raised?' raised':'');
+    d.innerHTML=`<div class="sav" style="background:${s.color}25;color:${s.color}">${s.init}</div>
+    <div class="sinfo"><div class="sname">${s.name}</div><div class="sstatus">${s.raised?'✋ Raised hand':'● Online'}</div></div>
+    ${s.raised?'<span style="font-size:18px">✋</span>':''}`;
+    list.appendChild(d);
+  });
+  document.getElementById('onlineCount').textContent=STUDENTS.length+' online';
+}
+
+function simRaise(){
+  const i=Math.floor(Math.random()*STUDENTS.length);
+  STUDENTS[i].raised=!STUDENTS[i].raised;
+  renderStudents();
+  if(STUDENTS[i].raised)toast(STUDENTS[i].name+' raised their hand! ✋');
+}
+
+// ═══════════════════════════════════════════════════════
+// Q&A
+// ═══════════════════════════════════════════════════════
+const ANSWERS=['Newton (N)','Kg·m/s²','I think Newtons!','F = ma right?','N — equals kg·m/s²','Not sure…'];
+let rCount=0;
+
+function askClass(){
+  const q=document.getElementById('qText').value.trim();
+  if(!q)return;
+  switchTab('qa');
+  document.getElementById('responsesEl').innerHTML='';
+  rCount=0;
+  document.getElementById('rCount').textContent='Question sent! Waiting…';
+  toast('Question sent to '+STUDENTS.length+' students!');
+  STUDENTS.forEach((s,i)=>{
+    setTimeout(()=>{
+      rCount++;
+      document.getElementById('rCount').textContent=rCount+' response'+(rCount>1?'s':'');
+      const ar=document.getElementById('responsesEl');
+      const d=document.createElement('div');
+      d.className='rcard';
+      d.innerHTML=`<div class="rname" style="color:${s.color}">${s.name}</div><div class="rtext">${ANSWERS[i%ANSWERS.length]}</div>`;
+      ar.appendChild(d);ar.scrollTop=ar.scrollHeight;
+      if(!document.getElementById('tabQA').classList.contains('active'))
+        document.getElementById('qaDot').style.display='block';
+    },1200+i*700);
+  });
+}
+
+function launchPoll(){
+  const q=document.getElementById('qText').value.trim()||'What is the SI unit of force?';
+  const opts=['Newton (N)','Joule (J)','Watt (W)','Pascal (Pa)'];
+  const votes=[0,0,0,0];
+  renderPoll(q,opts,votes,0);
+  toast('Poll launched!');
+  STUDENTS.forEach((_,i)=>{
+    setTimeout(()=>{
+      const v=i<3?0:(i===3?1:Math.floor(Math.random()*4));
+      votes[v]++;renderPoll(q,opts,votes,0);
+    },900+i*600);
+  });
+}
+
+function renderPoll(q,opts,votes,correct){
+  const tot=votes.reduce((a,b)=>a+b,0)||1;
+  document.getElementById('pollZone').innerHTML=`
+  <div class="poll-box">
+    <div class="poll-q">📊 ${q}</div>
+    ${opts.map((o,i)=>`
+    <div class="popt">
+      <div class="plabel">${String.fromCharCode(65+i)}</div>
+      <div class="pbar-wrap"><div class="pbar" style="width:${Math.round(votes[i]/tot*100)}%;background:${i===correct?'#39ff14':'#ff6b35'}">${votes[i]>0?Math.round(votes[i]/tot*100)+'%':''}</div></div>
+      <span style="font-size:10px;color:var(--muted);width:70px">${o}(${votes[i]})</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════════════
+function sendChat(){
+  const inp=document.getElementById('chatIn');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  addChatMsg(userName,'#00e5ff',msg);
+  inp.value='';
+  setTimeout(()=>{
+    const replies=['Got it! 👍','Thanks teacher!','Can you explain again?','Understood!','Makes sense now 🙂','What about friction?'];
+    const s=STUDENTS[Math.floor(Math.random()*STUDENTS.length)];
+    addChatMsg(s.name,s.color,replies[Math.floor(Math.random()*replies.length)]);
+  },1200+Math.random()*1800);
+}
+
+function addChatMsg(name,color,text){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  d.className='cmsg';
+  d.innerHTML=`<div class="cav" style="background:${color}20;color:${color}">${name.substring(0,2).toUpperCase()}</div>
+  <div><div class="cbubble"><div class="cfrom" style="color:${color}">${name}</div>${text}</div></div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  if(!document.getElementById('tabChat').classList.contains('active')&&name!==userName)
+    document.getElementById('chatDot').style.display='block';
+}
+
+document.getElementById('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function switchTab(n){
+  document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('active',['students','qa','chat'][i]===n));
+  ['Students','QA','Chat'].forEach(k=>document.getElementById('tab'+k).classList.remove('active'));
+  document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1)).classList.add('active');
+  if(n==='qa')document.getElementById('qaDot').style.display='none';
+  if(n==='chat')document.getElementById('chatDot').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════
+// INVITE
+// ═══════════════════════════════════════════════════════
+function showInviteModal(){document.getElementById('inviteModal').classList.add('show');}
+function copyCode(){navigator.clipboard.writeText(sessionCode).then(()=>toast('Code copied: '+sessionCode));}
+function copyLink(){
+  const link=window.location.href.split('?')[0]+'?join='+sessionCode;
+  navigator.clipboard.writeText(link).then(()=>toast('Link copied!'));
+}
+function shareWhatsApp(){
+  const link=window.location.href.split('?')[0]+'?join='+sessionCode;
+  window.open('https://wa.me/?text='+encodeURIComponent('Join my Physics class! Code: '+sessionCode+'\nLink: '+link));
+}
+function shareEmail(){
+  const link=window.location.href.split('?')[0]+'?join='+sessionCode;
+  window.open('mailto:?subject=Join My Physics Class&body='+encodeURIComponent('Hi!\n\nJoin my live Physics class.\n\nSession Code: '+sessionCode+'\nLink: '+link+'\n\nSee you there!'));
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+function initApp(){
+  resizeCanvas();
+  renderStudents();
+  startBlinking();
+  startHeadBob();
+  // Seed chat
+  setTimeout(()=>addChatMsg('James K.','#00e5ff','Good morning! Ready for class 🙋'),1500);
+  setTimeout(()=>addChatMsg('Amara O.','#7c3aed','Hi everyone! 👋'),2800);
+  // Welcome text on board
+  setTimeout(()=>{
+    ctx.font="bold 22px 'Exo 2', sans-serif";
+    ctx.fillStyle='rgba(0,229,255,0.5)';
+    ctx.fillText('Welcome to Physics Class — Session: '+sessionCode,30,40);
+    ctx.font="14px 'Exo 2', sans-serif";
+    ctx.fillStyle='rgba(255,215,0,0.4)';
+    ctx.fillText('Click 🎤 and speak — your words and equations appear here automatically',30,70);
+  },600);
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST & MISC
+// ═══════════════════════════════════════════════════════
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+function endClass(){
+  if(confirm('End this class session?')){
+    stopMic();
+    toast('Class ended. Session: '+sessionCode);
+    setTimeout(()=>window.location.reload(),2000);
+  }
+}
+</script>
+</body>
+</html>
